@@ -70,20 +70,38 @@ module ActiveRecord
           expect(upserted.wheels_count).to eq(1)
         end
         it 'works with a single symbol' do
-          v = Vehicle.create
+          v = Vehicle.create(make: 'Ford')
           Vehicle.upsert_keys :id
-          upserted = Vehicle.new(id: v.id, wheels_count: 1)
+          upserted = Vehicle.new(id: v.id, wheels_count: 1, make: 'Ford')
           upserted.upsert
           expect(upserted.wheels_count).to eq(1)
           expect(upserted.id).to eq(v.id)
         end
         it 'works with a single string' do
-          v = Vehicle.create
+          v = Vehicle.create(make: 'Ford')
           Vehicle.upsert_keys 'id'
-          upserted = Vehicle.new(id: v.id, wheels_count: 1)
+          upserted = Vehicle.new(id: v.id, wheels_count: 1, make: 'Ford')
           upserted.upsert
           expect(upserted.wheels_count).to eq(1)
           expect(upserted.id).to eq(v.id)
+        end
+        context 'when attributes are invalid' do
+          context 'when upsert is creating a new record' do
+            it 'raises validation error' do
+              Vehicle.upsert_keys 'id'
+              upserted = Vehicle.new(wheels_count: 1, make: nil)
+              expect { upserted.upsert }.to raise_error(ActiveRecord::RecordInvalid, /Make is not included in the list/)
+            end
+          end
+
+          context 'when upsert is updating an existing record' do
+            it 'raises validation error' do
+              v = Vehicle.create(make: 'Ford')
+              Vehicle.upsert_keys 'id'
+              upserted = Vehicle.new(id: v.id, wheels_count: 1, make: nil)
+              expect { upserted.upsert }.to raise_error(ActiveRecord::RecordInvalid, /Make is not included in the list/)
+            end
+          end
         end
       end
 
