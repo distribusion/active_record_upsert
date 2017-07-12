@@ -7,13 +7,12 @@ module ActiveRecordUpsert
         raise ::ActiveRecord::RecordSavedError, "Can't upsert a record that has already been saved" if persisted?
         values = run_callbacks(:save) {
           run_callbacks(:create) {
+            raise ::ActiveRecord::RecordInvalid.new(self) unless valid?
             _upsert_record
           }
         }
         assign_attributes(values.first.to_h)
         self
-      rescue ::ActiveRecord::RecordInvalid
-        false
       end
 
       def _upsert_record(attribute_names = changed)
