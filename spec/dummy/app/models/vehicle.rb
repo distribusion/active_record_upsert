@@ -7,8 +7,6 @@ class Vehicle < ApplicationRecord
   after_create :after_c
   after_commit :after_com
 
-  validates_inclusion_of :make, in: %w(Ford)
-
   def before_s
   end
 
